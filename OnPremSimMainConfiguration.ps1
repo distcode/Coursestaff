@@ -49,4 +49,14 @@ Set-DhcpServerv4OptionValue -ScopeId '10.203.2.0' -Router '10.203.2.4'
 $nic = Get-NetIPInterface | Where-Object { $_.InterfaceAlias -like '*(Default Switch)' -and $_.AddressFamily -eq 'IPV4' }
 New-NetIPAddress -InterfaceIndex $nic.ifIndex -IPAddress '10.203.2.4' -AddressFamily IPv4 -PrefixLength 24
 
+# Confige NAT
+Set-Service RemoteAccess -StartupType Automatic
+Start-Service RemoteAccess
+
+$extInterfaceName = (Get-NetIPAddress | Where-Object { Ipaddress -like '10.203.0.*'}).InterfaceAlias
+$intInterfaceName = (Get-NetIPAddress | Where-Object { ipAddress -like '10.203.2.*'}).InterfaceAlias
+
+netsh routing ip nat Install
+netsh routing ip nat add interface $extInterfaceName full
+netsh routing ip nat add interface $intInterfaceName private
 
