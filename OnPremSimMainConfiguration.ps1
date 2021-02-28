@@ -74,11 +74,5 @@ netsh routing ip nat Install
 netsh routing ip nat add interface $extInterfaceName full
 netsh routing ip nat add interface $intInterfaceName private
 
-# Install PS Modules
-Install-Module Az -Force
-
-# Install AzClI
-Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi; Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'
-
 # Ending
 Get-Job | Wait-Job
