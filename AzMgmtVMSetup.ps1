@@ -2,15 +2,17 @@
 # Install PowerShell 7.0
 #
 # Invoke-Expression -Command "& { $(Invoke-RestMethod https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet -AddExplorerContextMenu -EnablePSRemoting" 
-$cred = New-Object -TypeName pscredential -ArgumentList 'localadmin',(ConvertTo-SecureString -Force -AsPlainText -String 'securePa$$w0rd')
+$cred = New-Object -TypeName pscredential -ArgumentList 'localadmin', (ConvertTo-SecureString -Force -AsPlainText -String 'securePa$$w0rd')
 Invoke-Command -Scriptblock { Invoke-Expression "& { $(Invoke-RestMethod https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet -AddExplorerContextMenu -EnablePSRemoting" } -Credential $cred
 
 #
 # Install Azure CLI
 #
-Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile "$env:Temp\AzureCLI.msi" -Credential $cred
-Start-Process msiexec.exe -Wait -ArgumentList "/I $env:Temp\AzureCLI.msi /quiet" -Credential $cred
-Remove-Item "$env:temp\AzureCLI.msi" -Force -Credential $cred
+Invoke-Command -Credential $cred -ScriptBlock {
+    Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile "$env:Temp\AzureCLI.msi" 
+    Start-Process msiexec.exe -Wait -ArgumentList "/I $env:Temp\AzureCLI.msi /quiet"
+    Remove-Item "$env:temp\AzureCLI.msi" -Force -Credential $cred
+}
 
 #
 # Install Azure PowerShell Modules
