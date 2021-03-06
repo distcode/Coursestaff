@@ -8,11 +8,11 @@ Invoke-Command -Scriptblock { Invoke-Expression "& { $(Invoke-RestMethod https:/
 #
 # Install Azure CLI
 #
-Invoke-Command -Credential $cred -ScriptBlock {
+
     Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile "$env:Temp\AzureCLI.msi" 
     Start-Process msiexec.exe -Wait -ArgumentList "/I $env:Temp\AzureCLI.msi /quiet"
     Remove-Item "$env:temp\AzureCLI.msi" -Force -Credential $cred
-}
+
 
 #
 # Install Azure PowerShell Modules
