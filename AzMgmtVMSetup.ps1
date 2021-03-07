@@ -7,6 +7,7 @@ $ErrorActionPreference = 'Stop'
 if ( -not ((Get-EventLog -List).Log -contains 'PSScript' )) {
     New-EventLog -LogName PSScript -Source CustomScriptExtension
 }
+Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
 
 #
 # Install PowerShell 7.0
@@ -14,7 +15,6 @@ if ( -not ((Get-EventLog -List).Log -contains 'PSScript' )) {
 try {
     # Invoke-Expression -Command "& { $(Invoke-RestMethod https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet -AddExplorerContextMenu -EnablePSRemoting" 
     Write-Eventlog -Message 'Installing PS7 ...' -Logname PSScript -Source CustomScriptExtension -EventID 7 -EntryType Information
-    $cred = New-Object -TypeName pscredential -ArgumentList 'localadmin', (ConvertTo-SecureString -Force -AsPlainText -String 'securePa$$w0rd')
     Invoke-Command -Scriptblock { Invoke-Expression "& { $(Invoke-RestMethod https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet -AddExplorerContextMenu -EnablePSRemoting" }
 }
 catch {
@@ -49,21 +49,6 @@ catch {
     Write-Eventlog -Message 'Error Installing AzPS Modules ...' -Logname PSScript -Source CustomScriptExtension -EventID 9 -EntryType Information
 }
 
-<# #
-# Install VSCode
-#
-
-try { 
-    'Installing VSCode ...' | Out-Host
-    # & 'C:\Program Files\PowerShell\7\pwsh.exe' -command { Save-Script -Path c:\Temp -Name Install-VSCode -Force }
-    # & 'C:\Program Files\PowerShell\7\pwsh.exe' -command { C:\Temp\Install-VSCode.ps1 -buildEdition 'Stable-System' -EnableContextMenus -AdditionalExtensions @('ms-vscode.powershell','msazurermtools.azurerm-vscode-tools','ms-vscode.azurecli') *>&1 }
-    Save-Script -Path $Env:Temp -Name Install-VSCode -Force 
-    & "$env:temp\Install-VSCode.ps1" -buildEdition 'Stable-System' -EnableContextMenus
-}
-catch {
-    Out-Host -InputObject 'Error VSCode installation.'
-}
-#>
 #
 # Install Chrome
 #
@@ -86,7 +71,6 @@ catch {
 #
 try {
     Write-Eventlog -Message 'Installing Edge ...' -Logname PSScript -Source CustomScriptExtension -EventID 7 -EntryType Information
-    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
     Save-Script -Name Download-MicrosoftEdge -Path $env:Temp
     & "$env:Temp\Download-MicrosoftEdge.ps1" -Folder $env:Temp -Channel Stable
     Start-Process msiexec.exe -Wait -ArgumentList "/I $env:Temp\MicrosoftEdgeEnterpriseX64 /quiet /noRestart"
@@ -96,17 +80,33 @@ catch {
     Write-Eventlog -Message 'Error Installing Edge ...' -Logname PSScript -Source CustomScriptExtension -EventID 9 -EntryType Information
 }
 
+#
+# Install VSCode
+#
 
-<# #
-# Install Git
+try { 
+    Write-Eventlog -Message 'Installing VSCode ...' -Logname PSScript -Source CustomScriptExtension -EventID 7 -EntryType Information
+    Save-Script -Path $Env:Temp -Name Install-VSCode -Force 
+    & "$env:temp\Install-VSCode.ps1" -buildEdition 'Stable-System' -EnableContextMenus -AdditionalExtensions @('msazurermtools.azurerm-vscode-tools','ms-vscode.azurecli') -ErrorAction SilentlyContinue
+}
+catch {
+    Out-Host -InputObject 'Error VSCode installation.'
+    Write-Eventlog -Message 'Error Installing VSCode ...' -Logname PSScript -Source CustomScriptExtension -EventID 9 -EntryType Information
+}
+
+
+#
+# Install Git, Sysinternals
 #
 try {
-    'Installing Git ...' | Out-Host
+    Write-Eventlog -Message 'Installing Git ...' -Logname PSScript -Source CustomScriptExtension -EventID 7 -EntryType Information
     Set-ExecutionPolicy Bypass -Scope Process -Force;
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
     Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-    choco install git
+    choco install git -y
+    choco install Sysinternals -y
 }
 catch {
     Out-Host -InputObject 'Error Git Installation'
-} #>
+    Write-Eventlog -Message 'Error Installing Git ...' -Logname PSScript -Source CustomScriptExtension -EventID 9 -EntryType Information
+}
