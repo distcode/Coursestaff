@@ -10,7 +10,7 @@ try {
     Invoke-Command -Scriptblock { Invoke-Expression "& { $(Invoke-RestMethod https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet -AddExplorerContextMenu -EnablePSRemoting" }
 }
 catch {
-    Out-Host 'Error PS7 installation'
+    Out-Host -InputObject 'Error PS7 installation'
 }
 
 #
@@ -22,7 +22,7 @@ try {
     Remove-Item "$env:temp\AzureCLI.msi" -Force
 }
 catch {
-    Out-Host 'Error Az CLI Installation'
+    Out-Host -InputObject 'Error Az CLI Installation'
 }
 
 #
@@ -32,7 +32,7 @@ try {
     & 'C:\Program Files\PowerShell\7\pwsh.exe' -command { Install-Module Az -Scope AllUsers -Force } 
 }
 catch {
-    Out-Host 'Error PS Module Installation'
+    Out-Host -InputObject 'Error PS Module Installation'
 }
 
 #
@@ -46,7 +46,7 @@ try {
     & "$env:temp\Install-VSCode.ps1" -buildEdition 'Stable-System' -EnableContextMenus
 }
 catch {
-    Out-Host 'Error VSCode installation.'
+    Out-Host -InputObject 'Error VSCode installation.'
 }
 
 #
@@ -61,7 +61,7 @@ try {
     Remove-Item -Path $Installer  
 }
 catch {
-    Out-Host 'Error Crome installation'
+    Out-Host -InputObject 'Error Crome installation'
 }
 
 #
@@ -73,5 +73,5 @@ try {
     Start-Process msiexec.exe -Wait -ArgumentList "/I $env:Temp\MicrosoftEdgeEnterpriseX64 /quiet /noRestart"
 }
 catch {
-    Out-Host 'Error Edge installation'
+    Out-Host -InputObject 'Error Edge installation'
 }
