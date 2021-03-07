@@ -19,7 +19,7 @@ catch {
 try {
     Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile "$env:Temp\AzureCLI.msi" 
     Start-Process msiexec.exe -Wait -ArgumentList "/I $env:Temp\AzureCLI.msi /quiet"
-    Remove-Item "$env:temp\AzureCLI.msi" -Force -Credential $cred
+    Remove-Item "$env:temp\AzureCLI.msi" -Force
 }
 catch {
     Out-Host 'Error Az CLI Installation'
