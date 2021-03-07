@@ -86,6 +86,7 @@ catch {
 #
 try {
     Write-Eventlog -Message 'Installing Edge ...' -Logname PSScript -Source CustomScriptExtension -EventID 7 -EntryType Information
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
     Save-Script -Name Download-MicrosoftEdge -Path $env:Temp
     & "$env:Temp\Download-MicrosoftEdge.ps1" -Folder $env:Temp -Channel Stable
     Start-Process msiexec.exe -Wait -ArgumentList "/I $env:Temp\MicrosoftEdgeEnterpriseX64 /quiet /noRestart"
