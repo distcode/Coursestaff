@@ -5,8 +5,8 @@ $funcPS7 = { function Install-distPS7 {
         try {
             # Invoke-Expression -Command "& { $(Invoke-RestMethod https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet -AddExplorerContextMenu -EnablePSRemoting" 
             Write-Eventlog -Message 'Installing PS7 ...' -Logname PSScript -Source CustomScriptExtension -EventID 7 -EntryType Information
-            # Invoke-Command -Scriptblock { Invoke-Expression "& { $(Invoke-RestMethod https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet -AddExplorerContextMenu -EnablePSRemoting" }
-            choco install powershell-core --install-arguments='"ADD_EXPLORER_CONTEXT_MENU_OPENPOWERSHELL=1 REGISTER_MANIFEST=1 ENABLE_PSREMOTING=1"' -y
+            Invoke-Command -Scriptblock { Invoke-Expression "& { $(Invoke-RestMethod https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet -AddExplorerContextMenu -EnablePSRemoting" }
+            # choco install powershell-core --install-arguments='"ADD_EXPLORER_CONTEXT_MENU_OPENPOWERSHELL=1 REGISTER_MANIFEST=1 ENABLE_PSREMOTING=1"' -y
         }
         catch {
             Out-Host -InputObject 'Error PS7 installation'
@@ -125,13 +125,14 @@ Set-ExecutionPolicy Bypass -Scope Process -Force;
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
 Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
-$cred = New-Object -TypeName pscredential -ArgumentList 'localadmin',(ConvertTo-SecureString -String 'securePa$$w0rd' -AsPlainText -Force)
+# $cred = New-Object -TypeName pscredential -ArgumentList 'localadmin',(ConvertTo-SecureString -String 'securePa$$w0rd' -AsPlainText -Force)
 #endregion Preparation
 
 #
 # Main
 #
 
+<# 
 Start-Job -ScriptBlock { Install-distPS7 } -InitializationScript $funcPS7
 Start-Job -ScriptBlock { Install-distAzCLI } -InitializationScript $funcAzCLI
 Start-Job -ScriptBlock { Install-distAzPSModules } -InitializationScript $funcAzPSModules
@@ -146,6 +147,12 @@ Wait-Job -Id $jobChrome.Id
 $jobEdge = Start-Job -ScriptBlock { Install-distEdge } -InitializationScript $funcEdge -Credential $cred
 Wait-Job -Id $jobEdge.Id
 
+#>
+
+Start-Job -ScriptBlock { Install-distAzCLI } -InitializationScript $funcAzCLI
+ choco install powershell-core --install-arguments='"ADD_EXPLORER_CONTEXT_MENU_OPENPOWERSHELL=1 REGISTER_MANIFEST=1 ENABLE_PSREMOTING=1"' -y
+ choco install az.powershell googlechrome microsoft-edge vscode git sysinternals microsoftazurestorageexplorer -y
+ Get-Job | Wait-Job 
 
 # VSCode Extension Installation
 powershell.exe -command { code --install-extension ms-vscode.powershell }
