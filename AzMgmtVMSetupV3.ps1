@@ -5,7 +5,8 @@ $funcPS7 = { function Install-distPS7 {
         try {
             # Invoke-Expression -Command "& { $(Invoke-RestMethod https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet -AddExplorerContextMenu -EnablePSRemoting" 
             Write-Eventlog -Message 'Installing PS7 ...' -Logname PSScript -Source CustomScriptExtension -EventID 7 -EntryType Information
-            Invoke-Command -Scriptblock { Invoke-Expression "& { $(Invoke-RestMethod https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet -AddExplorerContextMenu -EnablePSRemoting" }
+            # Invoke-Command -Scriptblock { Invoke-Expression "& { $(Invoke-RestMethod https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet -AddExplorerContextMenu -EnablePSRemoting" }
+            choco install powershell-core --install-arguments='"ADD_EXPLORER_CONTEXT_MENU_OPENPOWERSHELL=1 REGISTER_MANIFEST=1 ENABLE_PSREMOTING=1"' -y
         }
         catch {
             Out-Host -InputObject 'Error PS7 installation'
@@ -34,7 +35,7 @@ $funcAzPSModules = { function Install-distAzPSModules {
         #
         try {
             Write-Eventlog -Message 'Installing AzPS Modules ...' -Logname PSScript -Source CustomScriptExtension -EventID 7 -EntryType Information
-            & 'C:\Program Files\PowerShell\7\pwsh.exe' -command { Install-Module Az -Scope AllUsers -Force } 
+            choco install az.powershell -y 
         }
         catch {
             Out-Host -InputObject 'Error PS Module Installation'
@@ -48,7 +49,7 @@ $funcChrome = { function Install-distChrome {
 
         try {
             Write-Eventlog -Message 'Installing Chrome ...' -Logname PSScript -Source CustomScriptExtension -EventID 7 -EntryType Information
-            choco install googlechrome  
+            choco install googlechrome  -y
         }
         catch {
             Out-Host -InputObject 'Error Crome installation'
@@ -61,7 +62,7 @@ $funcEdge = { function Install-distEdge {
         #
         try {
             Write-Eventlog -Message 'Installing Edge ...' -Logname PSScript -Source CustomScriptExtension -EventID 7 -EntryType Information
-            choco install microsoft-edge
+            choco install microsoft-edge -y
         }
         catch {
             Out-Host -InputObject 'Error Edge installation'
@@ -74,8 +75,7 @@ $funcVSCode = { function Install-distVSCode {
         #
         try { 
             Write-Eventlog -Message 'Installing VSCode ...' -Logname PSScript -Source CustomScriptExtension -EventID 7 -EntryType Information
-            Save-Script -Path $Env:Temp -Name Install-VSCode -Force 
-            & "$env:temp\Install-VSCode.ps1" -buildEdition 'Stable-System' -EnableContextMenus -AdditionalExtensions @('msazurermtools.azurerm-vscode-tools', 'ms-vscode.azurecli') -ErrorAction SilentlyContinue
+            choco install vscode -y
         }
         catch {
             Out-Host -InputObject 'Error VSCode installation.'
@@ -97,9 +97,22 @@ $funcGIT = { function Install-distGIT {
         }
     } }
 
-#
-# Some preparation
-#
+$funcStorageExplorer = { function Install-distStorageExplorer {
+        #
+        # Install Git, Sysinternals
+        #
+        try {
+            Write-Eventlog -Message 'Installing Storage Explorer ...' -Logname PSScript -Source CustomScriptExtension -EventID 7 -EntryType Information
+            choco install microsoftazurestorageexplorer -y
+        }
+        catch {
+            Out-Host -InputObject 'Error Storage Explorer Installation'
+            Write-Eventlog -Message 'Error Installing Storage Explorer ...' -Logname PSScript -Source CustomScriptExtension -EventID 9 -EntryType Information
+        }
+    } }
+
+
+#region Preparation
 $ErrorActionPreference = 'Stop'
 
 if ( -not ((Get-EventLog -List).Log -contains 'PSScript' )) {
@@ -112,6 +125,8 @@ Set-ExecutionPolicy Bypass -Scope Process -Force;
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
 Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
+#endregion Preparation
+
 #
 # Main
 #
@@ -123,5 +138,11 @@ Start-Job -ScriptBlock { Install-distChrome } -InitializationScript $funcChrome
 Start-Job -ScriptBlock { Install-distEdge } -InitializationScript $funcEdge
 Start-Job -ScriptBlock { Install-distVSCode } -InitializationScript $funcVSCode
 Start-Job -ScriptBlock { Install-distGIT } -InitializationScript $funcGIT
+Start-Job -ScriptBlock { Install-distStorageExplorer } -InitializationScript $funcStorageExplorer
 
 Get-Job | Wait-Job
+
+# VSCode Extension Installation
+powershell.exe -command { code --install-extension ms-vscode.powershell }
+powershell.exe -command { code --install-extension msazurermtools.azurerm-vscode-tools }
+powershell.exe -command { code --install-extension ms-vscode.azurecli }
