@@ -49,7 +49,7 @@ $funcChrome = { function Install-distChrome {
 
         try {
             Write-Eventlog -Message 'Installing Chrome ...' -Logname PSScript -Source CustomScriptExtension -EventID 7 -EntryType Information
-            choco install googlechrome  -y
+            choco install googlechrome  -y *>&1 c:\chromeinst.txt
         }
         catch {
             Out-Host -InputObject 'Error Crome installation'
@@ -62,7 +62,7 @@ $funcEdge = { function Install-distEdge {
         #
         try {
             Write-Eventlog -Message 'Installing Edge ...' -Logname PSScript -Source CustomScriptExtension -EventID 7 -EntryType Information
-            choco install microsoft-edge -y
+            choco install microsoft-edge -y *>&1 c:\edgeinst.txt
         }
         catch {
             Out-Host -InputObject 'Error Edge installation'
@@ -125,6 +125,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force;
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
 Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
+$cred = New-Object -TypeName pscredential -ArgumentList 'localadmin',(ConvertTo-SecureString -String 'securePa$$w0rd' -AsPlainText -Force)
 #endregion Preparation
 
 #
@@ -134,13 +135,17 @@ Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://cho
 Start-Job -ScriptBlock { Install-distPS7 } -InitializationScript $funcPS7
 Start-Job -ScriptBlock { Install-distAzCLI } -InitializationScript $funcAzCLI
 Start-Job -ScriptBlock { Install-distAzPSModules } -InitializationScript $funcAzPSModules
-Start-Job -ScriptBlock { Install-distChrome } -InitializationScript $funcChrome 
-Start-Job -ScriptBlock { Install-distEdge } -InitializationScript $funcEdge
 Start-Job -ScriptBlock { Install-distVSCode } -InitializationScript $funcVSCode
 Start-Job -ScriptBlock { Install-distGIT } -InitializationScript $funcGIT
 Start-Job -ScriptBlock { Install-distStorageExplorer } -InitializationScript $funcStorageExplorer
 
 Get-Job | Wait-Job
+
+$jobChrome = Start-Job -ScriptBlock { Install-distChrome } -InitializationScript $funcChrome -Credential $cred
+Wait-Job -Id $jobChrome.Id
+$jobEdge = Start-Job -ScriptBlock { Install-distEdge } -InitializationScript $funcEdge -Credential $cred
+Wait-Job -Id $jobEdge.Id
+
 
 # VSCode Extension Installation
 powershell.exe -command { code --install-extension ms-vscode.powershell }
