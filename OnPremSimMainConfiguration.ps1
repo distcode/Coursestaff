@@ -79,5 +79,8 @@ netsh routing ip nat add interface $intInterfaceName private
 
 Restart-Service RemoteAccess
 
+Invoke-WebRequest -uri 'https://github.com/distcode/AzMgmtVMScript/blob/master/DISTAzTools.zip?raw=true' -OutFile "$env:TEMP\DISTAzTools.zip"
+Expand-Archive -Path "$env:temp\DISTAzTools.zip" -DestinationPath 'C:\Program Files\WindowsPowerShell\Modules'
+
 # Ending
 Get-Job | Wait-Job
