@@ -4,7 +4,7 @@ $htmlDoc = @"
 <title>Demo Traffic Managment</title>
 <body>
 <br />
-<h1 style="color:Red;text-align:center;">VMSS - HOME</h1>
+<h1 style="color:LimeGreen;text-align:center;">VMSS - SHOP</h1>
 <p style="text-align:center";>This is instance $($env:computername).</p>
 </body>
 "@
